@@ -6,7 +6,7 @@ import WarZone from './components/WarZone';
 import InitBackground from './components/InitBackground';
 import { Zap, Shield, AlertTriangle, User, Star, GitFork, ChevronRight } from 'lucide-react';
 
-const socket = io('http://localhost:3001');
+const socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:3001');
 
 const CustomCursor = () => {
   const cursorX = useSpring(0, { damping: 25, stiffness: 300 });
