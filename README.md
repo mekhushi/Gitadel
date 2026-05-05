@@ -3,8 +3,8 @@
 Gitadel is a high-fidelity, 3D Real-Time Strategy (RTS) interface for Git repository management. It transforms abstract version control history into a spatial metropolis, allowing developers to navigate, analyze, and manage their codebase through an immersive command-center environment.
 ![Gitadel Command Center Interface](workflow.png)
 
-## The Problem Statement  
-
+## The Problem Statement 
+  
 Traditional Git interfaces whether CLI or GUI rely heavily on linear, text-based representations of history. This creates several operational bottlenecks:
 
 1. Spatial Disconnect: As repositories grow to thousands of commits, developers lose the ability to visualize the scale and impact of changes across different time periods.
