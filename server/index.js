@@ -69,9 +69,10 @@ io.on('connection', (socket) => {
                     await fs.access(targetPath);
                     socket.emit('repo-status', "USING LOCAL CACHE...");
                 } catch {
-                    socket.emit('repo-status', `CLONING ${repoName.toUpperCase()}...`);
+                    socket.emit('repo-status', `CLONING ${repoName.toUpperCase()} (SHALLOW)...`);
                     const tempGit = simpleGit();
-                    await tempGit.clone(newPath, targetPath);
+                    // Shallow clone: only get the last 20 commits across all branches to make it lightning fast
+                    await tempGit.clone(newPath, targetPath, ['--depth', '20', '--no-single-branch']);
                 }
             }
             socket.emit('repo-status', "INDEXING TERRITORY...");

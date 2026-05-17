@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState, Suspense } from 'react';
+import React, { useRef, useMemo, useState, Suspense, useEffect } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { 
@@ -39,7 +39,7 @@ const DataPacket = ({ start, end, delay }) => {
   );
 };
 
-const CommitMonolith = ({ position, hash, message, index, author, color, onSelect, isSelected }) => {
+const CommitMonolith = ({ position, hash, message, date, index, author, color, onSelect, isSelected }) => {
   const [hovered, setHover] = useState(false);
   const meshRef = useRef();
   
@@ -59,7 +59,7 @@ const CommitMonolith = ({ position, hash, message, index, author, color, onSelec
       position={position} 
       onPointerOver={() => setHover(true)} 
       onPointerOut={() => setHover(false)}
-      onClick={() => onSelect({ hash, message, author, position, height })}
+      onClick={() => onSelect({ hash, message, date, author, position, height })}
     >
       {/* Structural Aura */}
       {(hovered || isSelected) && (
@@ -143,23 +143,51 @@ const Scene = ({ commits = [], selectedCommit, onSelectCommit }) => {
     });
   }, [commits]);
 
+  const targetCamPos = useRef(new THREE.Vector3(600, 600, 600));
+  const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const isAnimating = useRef(false);
+
+  useEffect(() => {
+    if (selectedCommit) {
+      targetLookAt.current.set(...selectedCommit.position);
+      targetCamPos.current.set(
+        selectedCommit.position[0] + 120, 
+        selectedCommit.height + 80, 
+        selectedCommit.position[2] + 120
+      );
+      isAnimating.current = true;
+    } else {
+      // When deselected, animate target back to center
+      targetLookAt.current.set(0, 0, 0);
+      isAnimating.current = true;
+    }
+  }, [selectedCommit]);
+
   useFrame((state) => {
     if (controlsRef.current) {
-      if (selectedCommit) {
-        controlsRef.current.autoRotate = false;
-        const targetPos = new THREE.Vector3(...selectedCommit.position);
-        controlsRef.current.target.lerp(targetPos, 0.1);
-        const idealCamPos = new THREE.Vector3(
-          selectedCommit.position[0] + 120, 
-          selectedCommit.height + 80, 
-          selectedCommit.position[2] + 120
-        );
-        state.camera.position.lerp(idealCamPos, 0.06);
-      } else {
-        controlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), 0.05);
-        controlsRef.current.autoRotate = true;
-        controlsRef.current.autoRotateSpeed = 0.4;
+      if (isAnimating.current) {
+        controlsRef.current.target.lerp(targetLookAt.current, 0.05);
+        
+        if (selectedCommit) {
+          state.camera.position.lerp(targetCamPos.current, 0.05);
+        }
+
+        // Stop animating when we get close enough, giving control back to the user
+        if (
+          controlsRef.current.target.distanceTo(targetLookAt.current) < 1 &&
+          (!selectedCommit || state.camera.position.distanceTo(targetCamPos.current) < 2)
+        ) {
+          isAnimating.current = false;
+        }
       }
+
+      if (!selectedCommit) {
+        controlsRef.current.autoRotate = true;
+        controlsRef.current.autoRotateSpeed = 0.3;
+      } else {
+        controlsRef.current.autoRotate = false;
+      }
+      
       controlsRef.current.update();
     }
   });
@@ -167,13 +195,21 @@ const Scene = ({ commits = [], selectedCommit, onSelectCommit }) => {
   return (
     <>
       <PerspectiveCamera makeDefault position={[600, 600, 600]} fov={25} />
-      <OrbitControls ref={controlsRef} maxPolarAngle={Math.PI / 2.1} minDistance={300} maxDistance={3000} enableDamping />
+      <OrbitControls 
+        ref={controlsRef} 
+        maxPolarAngle={Math.PI / 2.1} 
+        minDistance={100} 
+        maxDistance={3000} 
+        enableDamping={true} 
+        dampingFactor={0.05} 
+        makeDefault
+      />
       
       <ambientLight intensity={0.2} />
       <spotLight position={[1000, 2000, 1000]} angle={0.2} penumbra={1} intensity={20} castShadow />
       
       {/* Starfield to fill the "empty" space */}
-      <Stars radius={500} depth={100} count={5000} factor={10} saturation={0} fade speed={1} />
+      <Stars radius={500} depth={100} count={1500} factor={10} saturation={0} fade speed={1} />
       
       {/* Ghost Skyscrapers (Environment Filling) */}
       {[...Array(20)].map((_, i) => (
@@ -188,7 +224,7 @@ const Scene = ({ commits = [], selectedCommit, onSelectCommit }) => {
         <planeGeometry args={[10000, 10000]} />
         <MeshReflectorMaterial
           blur={[0, 0]}
-          resolution={1024}
+          resolution={256}
           mixBlur={0}
           mixStrength={100}
           roughness={1}
@@ -209,18 +245,17 @@ const Scene = ({ commits = [], selectedCommit, onSelectCommit }) => {
         );
       })}
 
-      <Sparkles count={1000} scale={1500} size={2} speed={0.5} color="#00ffff" />
+      <Sparkles count={400} scale={1500} size={2} speed={0.5} color="#00ffff" />
 
       <group>
         {commits.map((commit, i) => {
           const color = `hsl(${(commit.author_name?.length || 0) * 137 % 360}, 100%, 70%)`;
-          return <CommitMonolith key={commit.hash || i} index={i} position={[commitPositions[i].x, 0, commitPositions[i].z]} hash={commit.hash} message={commit.message} author={commit.author_name} color={color} onSelect={onSelectCommit} isSelected={selectedCommit?.hash === commit.hash} />;
+          return <CommitMonolith key={commit.hash || i} index={i} position={[commitPositions[i].x, 0, commitPositions[i].z]} hash={commit.hash} message={commit.message} date={commit.date} author={commit.author_name} color={color} onSelect={onSelectCommit} isSelected={selectedCommit?.hash === commit.hash} />;
         })}
       </group>
 
-      <EffectComposer disableNormalPass multisampling={8}>
+      <EffectComposer disableNormalPass multisampling={4}>
         <Bloom luminanceThreshold={0.85} intensity={1} mipmapBlur />
-        <ChromaticAberration offset={[0.0004, 0.0004]} />
         <Vignette darkness={0.8} />
         <Noise opacity={0.015} />
       </EffectComposer>
@@ -233,7 +268,7 @@ const Scene = ({ commits = [], selectedCommit, onSelectCommit }) => {
 const ThreeWorld = ({ commits = [], selectedCommit, onSelectCommit }) => {
   return (
     <div style={{ width: '100%', height: '100vh', background: '#000' }}>
-      <Canvas shadows dpr={[1, 2]}>
+      <Canvas shadows dpr={[1, 1.5]}>
         <Suspense fallback={<Html center><div style={{ color: 'white', letterSpacing: '5px' }}>GENERATING SECTORS...</div></Html>}>
           <Scene commits={commits} selectedCommit={selectedCommit} onSelectCommit={onSelectCommit} />
         </Suspense>

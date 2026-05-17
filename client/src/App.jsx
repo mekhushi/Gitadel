@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useSpring } from 'framer-motion';
 import ThreeWorld from './components/ThreeWorld';
 import WarZone from './components/WarZone';
 import InitBackground from './components/InitBackground';
-import { Zap, Shield, AlertTriangle, User, Star, GitFork, ChevronRight } from 'lucide-react';
+import { Zap, Shield, AlertTriangle, User, Star, GitFork, ChevronRight, Box, BarChart2, ScanSearch, Cpu, Terminal } from 'lucide-react';
 
 const socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:3001');
 
@@ -76,8 +76,8 @@ const KineticText = ({ text }) => {
           initial={{ y: "100%", rotate: 10 }}
           animate={{ y: 0, rotate: 0 }}
           transition={{
-            delay: i * 0.03,
-            duration: 1.2,
+            delay: i * 0.015,
+            duration: 0.5,
             ease: [0.16, 1, 0.3, 1]
           }}
           style={{ display: 'inline-block' }}
@@ -172,23 +172,38 @@ function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, filter: 'blur(20px)', scale: 1.5 }}
             className="init-screen"
-            style={{ position: 'fixed', inset: 0 }}
+            style={{ position: 'fixed', inset: 0, overflowY: 'auto' }}
           >
             <InitBackground />
             
-            <div style={{ zIndex: 10, textAlign: 'center', width: '100%', maxWidth: '1200px', padding: '0 20px' }}>
+            <div style={{ 
+              zIndex: 10, textAlign: 'center', width: '100%', maxWidth: '1200px', padding: '0 20px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              minHeight: '100vh', 
+              justifyContent: userRepos.length ? 'flex-start' : 'center',
+              paddingTop: userRepos.length ? '40px' : '0'
+            }}>
               <motion.div 
                 className="outline-text hero-title"
                 style={{ fontWeight: 700, lineHeight: 1, letterSpacing: '-0.05em', display: 'flex', justifyContent: 'center' }}
+                animate={{ 
+                  scale: userRepos.length ? 0.4 : 1,
+                  marginTop: userRepos.length ? '20px' : '0px',
+                }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <KineticText text="GITADEL" />
               </motion.div>
               
               <motion.div 
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.2 }}
-                style={{ marginTop: '20px', color: '#333', fontSize: '0.6rem', letterSpacing: '8px' }}
+                animate={{ 
+                  opacity: userRepos.length ? 0 : 1, 
+                  height: userRepos.length ? 0 : 'auto',
+                  marginTop: userRepos.length ? 0 : '20px'
+                }}
+                transition={{ duration: 0.3 }}
+                style={{ color: '#333', fontSize: '0.6rem', letterSpacing: '8px', overflow: 'hidden' }}
               >
                 GENERATIVE VISUALIZATION ENGINE / v2.1
               </motion.div>
@@ -210,11 +225,12 @@ function App() {
                 </form>
               ) : (
                 <motion.div 
-                  initial={{ opacity: 0, y: 30 }} 
+                  initial={{ opacity: 0, y: 50 }} 
                   animate={{ opacity: 1, y: 0 }}
-                  style={{ width: '100%', marginTop: '100px', textAlign: 'left' }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ width: '100%', marginTop: '0px', textAlign: 'left', flex: 1 }}
                 >
-                  <div style={{ display: 'flex', gap: '30px', marginBottom: '60px', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', gap: '30px', marginBottom: '40px', alignItems: 'center', justifyContent: 'center' }}>
                     <button onClick={() => setUserRepos([])} style={{ fontSize: '0.6rem', padding: '10px 20px' }}>BACK</button>
                     <span style={{ fontSize: '0.6rem', fontWeight: 400, color: '#444', letterSpacing: '4px' }}>SELECTED IDENTITY / {username.toUpperCase()}</span>
                   </div>
@@ -224,7 +240,7 @@ function App() {
                         key={repo.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.8 }}
+                        transition={{ delay: i * 0.02, duration: 0.3 }}
                         className="mission-card"
                         onClick={() => {
                           setLoading(true);
@@ -311,20 +327,55 @@ function App() {
                   className="mission-briefing-overlay"
                 >
                   <motion.div 
-                    initial={{ scale: 0.9, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    className="briefing-card"
+                    initial={{ scale: 0.95, y: 20, opacity: 0 }}
+                    animate={{ scale: 1, y: 0, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="briefing-card-clean"
                   >
-                    <div className="briefing-header">MISSION BRIEFING</div>
-                    <div className="briefing-body">
-                      <p>Commander, welcome to <strong>Gitadel City</strong>—a 3D representation of your project history.</p>
-                      <ul>
-                        <li><span>🏢</span> <strong>Towers:</strong> Each building is a saved step (Commit).</li>
-                        <li><span>📈</span> <strong>Height:</strong> Taller towers mean more work was done.</li>
-                        <li><span>🔍</span> <strong>Action:</strong> Click any tower to investigate the mission intel.</li>
-                      </ul>
+                    <div className="briefing-header-clean">
+                      <div className="header-icon-ring">
+                        <Terminal size={18} strokeWidth={1.5} />
+                      </div>
+                      <h3>Project Initialization</h3>
                     </div>
-                    <button className="rts-btn" onClick={() => setShowBriefing(false)}>BEGIN MISSION</button>
+                    
+                    <div className="briefing-content-clean">
+                      <h2>Welcome to Gitadel</h2>
+                      <p className="briefing-subtext-clean">
+                        Your repository history has been parsed and mapped into a spatial visualization. Review the legend below to navigate the environment.
+                      </p>
+
+                      <div className="briefing-list-clean">
+                        <motion.div className="briefing-list-item" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 }}>
+                          <div className="icon-box"><Box size={18} strokeWidth={1.5} /></div>
+                          <div className="item-text">
+                            <h4>Commit Nodes</h4>
+                            <p>Each structural tower represents a single commit in your history.</p>
+                          </div>
+                        </motion.div>
+                        <motion.div className="briefing-list-item" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+                          <div className="icon-box"><BarChart2 size={18} strokeWidth={1.5} /></div>
+                          <div className="item-text">
+                            <h4>Metrics</h4>
+                            <p>Tower height correlates with the volume of code changes.</p>
+                          </div>
+                        </motion.div>
+                        <motion.div className="briefing-list-item" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}>
+                          <div className="icon-box"><ScanSearch size={18} strokeWidth={1.5} /></div>
+                          <div className="item-text">
+                            <h4>Inspection</h4>
+                            <p>Select any node to view detailed author and diff information.</p>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    <div className="briefing-footer-clean">
+                      <button className="btn-clean" onClick={() => setShowBriefing(false)}>
+                        <span>Enter Workspace</span>
+                        <ChevronRight size={16} strokeWidth={2} />
+                      </button>
+                    </div>
                   </motion.div>
                 </motion.div>
               )}
@@ -337,101 +388,123 @@ function App() {
                   initial={{ x: 450, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: 450, opacity: 0 }}
-                  className="details-panel-glass"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="details-panel-clean"
                 >
-                  <div className="panel-header">
-                    <div className="sector-tag">SECTOR: {selectedCommit.hash?.substring(0, 8)}</div>
-                    <button className="close-panel" onClick={() => setSelectedCommit(null)}>×</button>
+                  <div className="panel-header-clean">
+                    <div className="sector-tag-clean">
+                      <GitFork size={14} /> Commit {selectedCommit.hash?.substring(0, 8)}
+                    </div>
+                    <button className="close-panel-clean" onClick={() => setSelectedCommit(null)}>
+                      <ChevronRight size={18} />
+                    </button>
                   </div>
                   
-                  <div className="panel-content">
-                    <h2>{selectedCommit.message.toUpperCase()}</h2>
-                    <div className="meta-row">
-                      <span className="label">AUTHOR:</span>
-                      <span className="value">{selectedCommit.author.toUpperCase()}</span>
-                    </div>
-                    <div className="meta-row">
-                      <span className="label">TERRITORY:</span>
-                      <span className="value">{repoData.currentBranch.toUpperCase()}</span>
+                  <div className="panel-content-clean">
+                    <h2 className="commit-title-clean">{selectedCommit.message}</h2>
+                    
+                    <div className="meta-box-clean">
+                      <div className="meta-row-clean">
+                        <span className="label"><User size={14} /> Author</span>
+                        <span className="value">{selectedCommit.author_name || selectedCommit.author}</span>
+                      </div>
+                      <div className="meta-row-clean">
+                        <span className="label"><GitFork size={14} /> Branch</span>
+                        <span className="value">{repoData.currentBranch}</span>
+                      </div>
+                      <div className="meta-row-clean">
+                        <span className="label"><Box size={14} /> Date</span>
+                        <span className="value">
+                          {selectedCommit.date 
+                            ? new Date(selectedCommit.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                            : 'Unknown Date'}
+                        </span>
+                      </div>
                     </div>
                     
-                    <div className="action-grid-mini">
-                      <button className="rts-btn-small">CHECKOUT</button>
-                      <button className="rts-btn-small outline">RECON</button>
+                    <div className="action-grid-clean">
+                      <button 
+                        className="btn-clean primary-btn" 
+                        onClick={() => {
+                          setLoading(true);
+                          setStatusMessage('CHECKING OUT COMMIT...');
+                          socket.emit('checkout', selectedCommit.hash);
+                          setSelectedCommit(null);
+                        }}
+                      >
+                        Checkout
+                      </button>
+                      <button 
+                        className="btn-clean secondary-btn"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedCommit.hash);
+                          alert('Commit hash copied!');
+                        }}
+                      >
+                        Copy Hash
+                      </button>
                     </div>
                   </div>
-                  
-                  <button className="back-to-base" onClick={() => setSelectedCommit(null)}>
-                    RETURN TO OVERVIEW
-                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
             
             <div className="hud-container">
-              <header className="top-bar">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <div style={{ width: '12px', height: '12px', background: '#fff', borderRadius: '50%' }} />
-                  <h1 style={{ fontSize: '0.9rem' }}>GITADEL OS / 2026</h1>
+              <header className="top-bar-clean">
+                <div className="brand-logo">
+                  <div className="logo-dot" />
+                  <h1>Gitadel Workspace</h1>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="top-actions">
                   <button 
-                    className="rts-btn-small" 
-                    style={{ background: '#ff0055', color: '#fff' }}
+                    className="btn-clean danger-btn" 
                     onClick={() => setShowWarZone(true)}
                   >
-                    TEST COMBAT PROTOCOL
+                    Resolve Conflicts
                   </button>
                   <button 
-                    className="rts-btn-small outline" 
+                    className="btn-clean secondary-btn" 
                     onClick={() => {
                       setRepoData({ commits: [], branches: [], currentBranch: '', repoPath: null });
-                      setUserRepos([]);
-                      setUsername('');
                       setSelectedCommit(null);
                     }}
                   >
-                    EXIT
+                    Exit Workspace
                   </button>
                 </div>
               </header>
 
               <div className="bottom-bar">
-                <div className="hud-panel branch-list" style={{ width: '100%', maxWidth: '1400px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
-                    <div>
-                      <h3 style={{ fontSize: '0.5rem', color: '#666', letterSpacing: '4px', marginBottom: '5px' }}>ACTIVE SECTOR / TERRITORY</h3>
-                      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{repoData.currentBranch.toUpperCase()}</h2>
+                <div className="hud-panel-glass branch-list">
+                  <div className="hud-header-clean">
+                    <div className="active-sector-info">
+                      <h3>Active Branch</h3>
+                      <h2>{repoData.currentBranch}</h2>
                     </div>
                     <button 
-                      className="primary" 
-                      style={{ background: '#fff', color: '#000', padding: '15px 40px', fontSize: '0.7rem' }}
+                      className="btn-clean primary-btn" 
                       onClick={() => {
-                        const target = prompt('ENTER TARGET SECTOR (BRANCH) TO MERGE INTO CURRENT:');
+                        const target = prompt('Enter target branch to merge into current:');
                         if (target) socket.emit('merge', target);
                       }}
                     >
-                      INITIATE SECTOR MERGE
+                      Initiate Merge
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                  <div className="branch-scroll-container">
                     {repoData.branches.map(branch => (
                       <motion.div 
                         key={branch} 
-                        whileHover={{ y: -5 }}
-                        className="mission-card"
-                        style={{ 
-                          padding: '15px 25px', 
-                          minWidth: '180px',
-                          cursor: 'pointer',
-                          background: branch === repoData.currentBranch ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
-                          borderColor: branch === repoData.currentBranch ? '#fff' : 'rgba(255,255,255,0.1)'
-                        }}
+                        whileHover={{ y: -4, backgroundColor: 'rgba(255,255,255,0.06)' }}
+                        className={`branch-card-glass ${branch === repoData.currentBranch ? 'active' : ''}`}
                         onClick={() => socket.emit('checkout', branch)}
+                        title={`Branch: ${branch}`}
                       >
-                        <div style={{ fontSize: '0.4rem', color: '#444', marginBottom: '5px' }}>SECTOR ID</div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 500 }}>{branch.toUpperCase()}</div>
+                        <div className="branch-label">Branch</div>
+                        <div className="branch-name">
+                          {branch}
+                        </div>
                       </motion.div>
                     ))}
                   </div>
